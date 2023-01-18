@@ -1,2 +1,5 @@
 # GFS
-This is the source code of Graph Fuzzy System. We will give all code after review.
+##This is the source codes of Graph Fuzzy System (under review). 
+##We will give runnable codes after the paper is published. Thanks！
+
+
