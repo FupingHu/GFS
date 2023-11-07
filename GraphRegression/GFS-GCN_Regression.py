@@ -12,12 +12,9 @@ from Model.GFS_GCN_Regression import GraphFuzzySystem
 from Utils.GetAntecedent import GetAntWithVal
 from Utils.ReadData import read_regression_data
 
-os.environ["CUDA_VISIBLE_DEVICES"] = '0'
-
 if __name__ == '__main__':
     HyperParams_json = open('./Config/hyperparams.json')
     HyperParamConfig = json.load(HyperParams_json)
-    DatasetName = 'freesolv'
     DataContent = read_regression_data(DatasetName, prefer_attr_nodes=True)
     G, y = DataContent.data, DataContent.target
     y_len = len(y)
