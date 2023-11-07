@@ -1,0 +1,66 @@
+import torch
+import numpy as np
+
+class EarlyStopping:
+    def __init__(self, patience=7, verbose=False, delta=0):
+        self.patience = patience
+        self.verbose = verbose
+        self.counter = 0
+        self.best_score = None
+        self.early_stop = False
+        self.val_loss_min = np.Inf
+        self.delta = delta
+
+    def __call__(self, val_loss, model):
+
+        score = -val_loss
+
+        if self.best_score is None:
+            self.best_score = score
+            self.save_checkpoint(val_loss, model)
+        elif score < self.best_score + self.delta:
+            self.counter += 1
+            print(f'EarlyStopping counter: {self.counter} out of {self.patience}')
+            if self.counter >= self.patience:
+                self.early_stop = True
+        else:
+            self.best_score = score
+            self.save_checkpoint(val_loss, model)
+            self.counter = 0
+
+    def save_checkpoint(self, val_loss, model):
+        if self.verbose:
+            print(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
+        torch.save(model, 'finish_model.pkl')
+        self.val_loss_min = val_loss
+
+
+def mini_batches(X, Mu, Y, mini_batch_size=32, seed=0):
+    np.random.seed(seed)
+    m = X.shape[0]
+    mini_batches = []
+    permutation = list(np.random.permutation(m))
+
+    shuffled_X = X[permutation, :]
+    shuffled_Mu = Mu[permutation, :]
+    shuffled_Y = Y[permutation]
+
+    num_complete_minibatches = int(m // mini_batch_size)
+    num_batch = num_complete_minibatches
+    for k in range(num_complete_minibatches):
+        mini_batch_X = shuffled_X[k * mini_batch_size:(k + 1) * mini_batch_size, :]
+        mini_batch_Mu = shuffled_Mu[k * mini_batch_size:(k + 1) * mini_batch_size, :]
+        mini_batch_Y = shuffled_Y[k * mini_batch_size:(k + 1) * mini_batch_size]
+
+        mini_batch = (mini_batch_X, mini_batch_Mu, mini_batch_Y)
+        mini_batches.append(mini_batch)
+
+    if m % mini_batch_size != 0:
+        mini_batch_X = shuffled_X[mini_batch_size * num_complete_minibatches:, :]
+        mini_batch_Mu = shuffled_Mu[mini_batch_size * num_complete_minibatches:, :]
+        mini_batch_Y = shuffled_Y[mini_batch_size * num_complete_minibatches:]
+        mini_batch = (mini_batch_X, mini_batch_Mu, mini_batch_Y)
+        mini_batches.append(mini_batch)
+        return mini_batches, num_batch + 1
+    else:
+        return mini_batches, num_batch
